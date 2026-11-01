@@ -6,5 +6,23 @@ type Stats struct {
 }
 
 func Calc(nums []int64) Stats {
-	panic("TODO: implement")
+	result := Stats{}
+	for i := 1; i < len(nums); i++ {
+		diff := nums[i] - nums[i-1]
+		result.Count++
+		result.Sum += diff
+
+		if i == 1 {
+			result.Min = diff
+			result.Max = diff
+		} else {
+			if diff < result.Min {
+				result.Min = diff
+			}
+			if diff > result.Max {
+				result.Max = diff
+			}
+		}
+	}
+	return result
 }

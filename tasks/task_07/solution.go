@@ -21,11 +21,56 @@ type LRUCache[K comparable, V any] struct {
 }
 
 func NewLRUCache[K comparable, V any](capacity int) *LRUCache[K, V] {
-	panic("TODO: implement")
+	return &LRUCache[K, V]{
+		capacity: capacity,
+		ll:       list.List{},
+		items:    make(map[K]*list.Element),
+	}
 }
+
 func (c *LRUCache[K, V]) Get(key K) (value V, ok bool) {
-	panic("TODO: implement")
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	element, ok := c.items[key]
+	if !ok {
+		return value, false
+	}
+
+	c.ll.MoveToBack(element)
+
+	item := element.Value.(entry[K, V])
+
+	return item.value, true
 }
+
 func (c *LRUCache[K, V]) Set(key K, value V) {
-	panic("TODO: implement")
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if c.capacity <= 0 {
+		return
+	}
+
+	if element, ok := c.items[key]; ok {
+		item := element.Value.(entry[K, V])
+		item.value = value
+		element.Value = item
+		return
+	}
+
+	if len(c.items) >= c.capacity {
+		oldest := c.ll.Front()
+		item := oldest.Value.(entry[K, V])
+
+		delete(c.items, item.key)
+		c.ll.Remove(oldest)
+	}
+
+	element := c.ll.PushBack(entry[K, V]{
+		key:   key,
+		value: value,
+	})
+
+	c.items[key] = element
 }
